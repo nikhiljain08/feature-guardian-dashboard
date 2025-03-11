@@ -5,6 +5,8 @@ import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import ServiceHealthPanel from "@/components/dashboard/ServiceHealthPanel";
 import FeatureFlags from "@/components/dashboard/FeatureFlags";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { Flag } from "lucide-react";
 import { Environment, FeatureFlag, Microservice } from "@/types";
 
 // Mock data for services
@@ -149,11 +151,24 @@ const Dashboard = () => {
         
         <Separator />
         
-        <FeatureFlags
-          flags={featureFlags}
-          environment={environment}
-          onUpdateFlag={handleUpdateFlag}
-        />
+        <div className="flex flex-col space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-bold tracking-tight">Featured Flags</h2>
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2"
+              onClick={() => navigate("/feature-flags")}
+            >
+              <Flag className="h-4 w-4" />
+              View All Flags
+            </Button>
+          </div>
+          <FeatureFlags
+            flags={featureFlags.slice(0, 3)} // Show only the first 3 flags on dashboard
+            environment={environment}
+            onUpdateFlag={handleUpdateFlag}
+          />
+        </div>
       </main>
     </div>
   );

@@ -9,12 +9,17 @@ export interface Microservice {
   lastChecked: string;
 }
 
+export type FlagType = "release" | "experiment" | "ops" | "permission";
+export type Country = "global" | "us" | "eu" | "asia" | "latam";
+
 export interface FeatureFlag {
   id: string;
   name: string;
   description: string;
   enabled: boolean;
   environments: Record<Environment, boolean>;
+  type?: FlagType;
+  countries?: Country[];
 }
 
 export interface User {
