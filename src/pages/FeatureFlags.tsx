@@ -215,7 +215,7 @@ const FeatureFlagsPage = () => {
         production: false
       },
       type: "release",
-      countries: ["global"]
+      countries: ["AE"]
     });
     setIsAddDialogOpen(true);
   };
