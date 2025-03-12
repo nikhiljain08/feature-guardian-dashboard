@@ -6,7 +6,7 @@ import ServiceHealthPanel from "@/components/dashboard/ServiceHealthPanel";
 import FeatureFlags from "@/components/dashboard/FeatureFlags";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { Flag } from "lucide-react";
+import { Flag, Server } from "lucide-react";
 import { Environment, FeatureFlag, Microservice } from "@/types";
 
 // Mock data for services
@@ -147,7 +147,20 @@ const Dashboard = () => {
         onEnvironmentChange={handleEnvironmentChange}
       />
       <main className="flex-1 container py-6 space-y-8">
-        <ServiceHealthPanel services={services} />
+        <div className="flex flex-col space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-bold tracking-tight">Service Health</h2>
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2"
+              onClick={() => navigate("/microservices")}
+            >
+              <Server className="h-4 w-4" />
+              View All Services
+            </Button>
+          </div>
+          <ServiceHealthPanel services={services} />
+        </div>
         
         <Separator />
         
