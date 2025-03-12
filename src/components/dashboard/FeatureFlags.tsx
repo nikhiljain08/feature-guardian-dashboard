@@ -12,7 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Environment, FeatureFlag } from "@/types";
+import { Environment, FeatureFlag, ValueType } from "@/types";
 
 interface FeatureFlagsProps {
   flags: FeatureFlag[];
@@ -25,23 +25,14 @@ const FeatureFlags = ({ flags, environment, onUpdateFlag }: FeatureFlagsProps) =
   const [newFlag, setNewFlag] = useState<Partial<FeatureFlag>>({
     name: "",
     description: "",
-    enabled: false,
-    environments: {
-      development: true,
-      staging: false,
-      production: false
-    }
+    enabled: false
   });
 
   const handleToggleFlag = (flagId: string, enabled: boolean) => {
     const flag = flags.find(f => f.id === flagId);
     if (flag) {
       const updatedFlag = {
-        ...flag,
-        environments: {
-          ...flag.environments,
-          [environment]: enabled
-        }
+        ...flag
       };
       onUpdateFlag(updatedFlag);
       toast.success(`${flag.name} is now ${enabled ? 'enabled' : 'disabled'} in ${environment}`);
@@ -61,11 +52,9 @@ const FeatureFlags = ({ flags, environment, onUpdateFlag }: FeatureFlagsProps) =
       name: newFlag.name || "",
       description: newFlag.description || "",
       enabled: newFlag.enabled || false,
-      environments: newFlag.environments || {
-        development: true,
-        staging: false,
-        production: false
-      }
+      type: newFlag.type || "",
+      value: newFlag.value || "",
+      valueType: newFlag.valueType || "STRING",
     };
     
     onUpdateFlag(flag);
@@ -74,11 +63,6 @@ const FeatureFlags = ({ flags, environment, onUpdateFlag }: FeatureFlagsProps) =
       name: "",
       description: "",
       enabled: false,
-      environments: {
-        development: true,
-        staging: false,
-        production: false
-      }
     });
     
     toast.success("Feature flag created successfully");
@@ -120,10 +104,10 @@ const FeatureFlags = ({ flags, environment, onUpdateFlag }: FeatureFlagsProps) =
                     className="flex items-center justify-between rounded-md border p-4"
                   >
                     <div className="flex items-center gap-4">
-                      <Switch
+                      {/* <Switch
                         checked={flag.environments[environment]}
                         onCheckedChange={(checked) => handleToggleFlag(flag.id, checked)}
-                      />
+                      /> */}
                       <div>
                         <div className="flex items-center gap-2">
                           <p className="font-medium">{flag.name}</p>
@@ -137,7 +121,7 @@ const FeatureFlags = ({ flags, environment, onUpdateFlag }: FeatureFlagsProps) =
                                 <p className="text-sm text-muted-foreground">
                                   {flag.description || "No description provided"}
                                 </p>
-                                <div className="flex flex-wrap gap-2 pt-2">
+                                {/* <div className="flex flex-wrap gap-2 pt-2">
                                   <Badge variant={flag.environments.development ? "default" : "outline"}>
                                     Development
                                   </Badge>
@@ -147,7 +131,7 @@ const FeatureFlags = ({ flags, environment, onUpdateFlag }: FeatureFlagsProps) =
                                   <Badge variant={flag.environments.production ? "default" : "outline"}>
                                     Production
                                   </Badge>
-                                </div>
+                                </div> */}
                               </div>
                             </HoverCardContent>
                           </HoverCard>
@@ -220,42 +204,42 @@ const FeatureFlags = ({ flags, environment, onUpdateFlag }: FeatureFlagsProps) =
                     <Badge variant="outline" className="bg-info/10 text-info border-info/20">Dev</Badge>
                     Development
                   </Label>
-                  <Switch
+                  {/* <Switch
                     id="dev-env"
                     checked={newFlag.environments?.development || false}
                     onCheckedChange={(checked) => setNewFlag({
                       ...newFlag,
                       environments: { ...newFlag.environments, development: checked }
                     })}
-                  />
+                  /> */}
                 </div>
                 <div className="flex items-center justify-between rounded-md border p-3">
                   <Label htmlFor="staging-env" className="flex items-center gap-2 cursor-pointer">
                     <Badge variant="outline" className="bg-warning/10 text-warning border-warning/20">Stage</Badge>
                     Staging
                   </Label>
-                  <Switch
+                  {/* <Switch
                     id="staging-env"
                     checked={newFlag.environments?.staging || false}
                     onCheckedChange={(checked) => setNewFlag({
                       ...newFlag,
                       environments: { ...newFlag.environments, staging: checked }
                     })}
-                  />
+                  /> */}
                 </div>
                 <div className="flex items-center justify-between rounded-md border p-3">
                   <Label htmlFor="prod-env" className="flex items-center gap-2 cursor-pointer">
                     <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/20">Prod</Badge>
                     Production
                   </Label>
-                  <Switch
+                  {/* <Switch
                     id="prod-env"
                     checked={newFlag.environments?.production || false}
                     onCheckedChange={(checked) => setNewFlag({
                       ...newFlag,
                       environments: { ...newFlag.environments, production: checked }
                     })}
-                  />
+                  /> */}
                 </div>
               </div>
             </div>

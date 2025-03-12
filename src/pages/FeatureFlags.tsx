@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
-import { Environment, FeatureFlag, FlagType, Country } from "@/types";
+import { Environment, FeatureFlag, ValueType, Country } from "@/types";
 
 const countryNames: Record<Country, string> = {
   AE: "United Arab Emirates",
@@ -38,12 +38,9 @@ const mockFlags: FeatureFlag[] = [
     name: "new-checkout-flow",
     description: "Enable the new streamlined checkout experience",
     enabled: true,
-    environments: {
-      development: true,
-      staging: true,
-      production: false,
-    },
-    type: "release",
+    type:"OTP",
+    value: true,
+    valueType: "BOOLEAN",
     countries: ["AE", "SA"]
   },
   {
@@ -51,12 +48,9 @@ const mockFlags: FeatureFlag[] = [
     name: "dark-mode",
     description: "Enable dark mode theme across the application",
     enabled: true,
-    environments: {
-      development: true,
-      staging: true,
-      production: true,
-    },
-    type: "experiment",
+    type:"OTP",
+    value: true,
+    valueType: "BOOLEAN",
     countries: ["QA", "KW"]
   },
   {
@@ -64,12 +58,9 @@ const mockFlags: FeatureFlag[] = [
     name: "analytics-v2",
     description: "Use the new analytics tracking system",
     enabled: false,
-    environments: {
-      development: true,
-      staging: false,
-      production: false,
-    },
-    type: "ops",
+    type:"OTP",
+    value: true,
+    valueType: "BOOLEAN",
     countries: ["PK"]
   },
   {
@@ -77,12 +68,9 @@ const mockFlags: FeatureFlag[] = [
     name: "admin-dashboard",
     description: "Access to administrative controls",
     enabled: true,
-    environments: {
-      development: true,
-      staging: true,
-      production: true,
-    },
-    type: "permission",
+    type:"OTP",
+    value: true,
+    valueType: "BOOLEAN",
     countries: ["AE", "SA", "QA"]
   },
   {
@@ -90,12 +78,9 @@ const mockFlags: FeatureFlag[] = [
     name: "new-pricing-model",
     description: "Enables the new subscription pricing model",
     enabled: false,
-    environments: {
-      development: true,
-      staging: false,
-      production: false,
-    },
-    type: "release",
+    type:"OTP",
+    value: true,
+    valueType: "BOOLEAN",
     countries: ["EG", "JO", "OM"]
   },
   {
@@ -103,21 +88,22 @@ const mockFlags: FeatureFlag[] = [
     name: "beta-features",
     description: "Enables access to beta features for select users",
     enabled: true,
-    environments: {
-      development: true,
-      staging: true,
-      production: false,
-    },
-    type: "experiment",
+    type:"OTP",
+    value: true,
+    valueType: "BOOLEAN",
     countries: ["BH", "LB", "KE"]
   },
 ];
 
-const typeColors: Record<FlagType, string> = {
-  release: "bg-blue-100 text-blue-800 border-blue-200",
-  experiment: "bg-purple-100 text-purple-800 border-purple-200",
-  ops: "bg-amber-100 text-amber-800 border-amber-200",
-  permission: "bg-green-100 text-green-800 border-green-200"
+const typeColors: Record<ValueType, string> = {
+  STRING: "bg-blue-100 text-blue-800 border-blue-200",
+  BOOLEAN: "bg-purple-100 text-purple-800 border-purple-200",
+  JSON: "bg-amber-100 text-amber-800 border-amber-200",
+  INTEGER: "bg-green-100 text-green-800 border-green-200",
+  LONG: "bg-blue-100 text-blue-800 border-blue-200",
+  FLOAT: "bg-purple-100 text-purple-800 border-purple-200",
+  DOUBLE: "bg-amber-100 text-amber-800 border-amber-200",
+  DATE: "bg-green-100 text-green-800 border-green-200"
 };
 
 const FeatureFlagsPage = () => {
@@ -128,7 +114,7 @@ const FeatureFlagsPage = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingFlag, setEditingFlag] = useState<FeatureFlag | null>(null);
   const [countryFilter, setCountryFilter] = useState<Country | "all">("all");
-  const [typeFilter, setTypeFilter] = useState<FlagType | "all">("all");
+  const [typeFilter, setTypeFilter] = useState<ValueType | "STRING">("STRING");
 
   const availableCountries: Country[] = [
     "AE", "QA", "SA", "PK", "KW", "EG", "JO", "OM", "BH", "LB", "KE", "GE", "UZ"
@@ -146,7 +132,7 @@ const FeatureFlagsPage = () => {
       const matchesCountry = countryFilter === "all" || 
                             (flag.countries && flag.countries.includes(countryFilter as Country));
       
-      const matchesType = typeFilter === "all" || flag.type === typeFilter;
+      const matchesType = typeFilter === "STRING" || flag.type === typeFilter;
       
       return matchesSearch && matchesCountry && matchesType;
     });
@@ -188,11 +174,7 @@ const FeatureFlagsPage = () => {
     const updatedFlags = featureFlags.map(flag => {
       if (flag.id === flagId) {
         return {
-          ...flag,
-          environments: {
-            ...flag.environments,
-            [environment]: enabled
-          }
+          ...flag
         };
       }
       return flag;
@@ -209,12 +191,9 @@ const FeatureFlagsPage = () => {
       name: "",
       description: "",
       enabled: false,
-      environments: {
-        development: true,
-        staging: false,
-        production: false
-      },
-      type: "release",
+      type: "OTP",
+      value: true,
+      valueType: "BOOLEAN",
       countries: ["AE"]
     });
     setIsAddDialogOpen(true);
@@ -270,7 +249,7 @@ const FeatureFlagsPage = () => {
                 </Select>
                 <Select 
                   value={typeFilter} 
-                  onValueChange={(value) => setTypeFilter(value as FlagType | 'all')}
+                  onValueChange={(value) => setTypeFilter(value as ValueType | 'STRING')}
                 >
                   <SelectTrigger className="w-[130px]">
                     <SelectValue placeholder="Type" />
@@ -293,11 +272,11 @@ const FeatureFlagsPage = () => {
                   <Flag className="h-10 w-10 text-muted-foreground/60 mb-3" />
                   <h3 className="text-lg font-medium">No feature flags found</h3>
                   <p className="text-sm text-muted-foreground mt-1 mb-4">
-                    {searchQuery || countryFilter !== "all" || typeFilter !== "all" 
+                    {searchQuery || countryFilter !== "all" || typeFilter !== "STRING" 
                       ? "No flags match your current filters"
                       : "Create your first feature flag to get started"}
                   </p>
-                  {!searchQuery && countryFilter === "all" && typeFilter === "all" && (
+                  {!searchQuery && countryFilter === "all" && typeFilter === "STRING" && (
                     <Button onClick={openAddDialog} size="sm">
                       Create a Feature Flag
                     </Button>
@@ -342,12 +321,12 @@ const FeatureFlagsPage = () => {
                               ))}
                             </div>
                           </td>
-                          <td className="py-3 px-2">
+                          {/* <td className="py-3 px-2">
                             <Switch
                               checked={flag.environments[environment]}
                               onCheckedChange={(checked) => handleToggleFlag(flag.id, checked)}
                             />
-                          </td>
+                          </td> */}
                           <td className="py-3 px-2 text-right">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
@@ -414,7 +393,7 @@ const FeatureFlagsPage = () => {
               <Label htmlFor="type">Type</Label>
               <Select 
                 value={editingFlag?.type} 
-                onValueChange={(value) => setEditingFlag(prev => prev ? {...prev, type: value as FlagType} : null)}
+                onValueChange={(value) => setEditingFlag(prev => prev ? {...prev, type: value as ValueType} : null)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select type" />
@@ -468,42 +447,42 @@ const FeatureFlagsPage = () => {
                     <Badge variant="outline" className="bg-info/10 text-info border-info/20">Dev</Badge>
                     Development
                   </Label>
-                  <Switch
+                  {/* <Switch
                     id="dev-env"
                     checked={editingFlag?.environments?.development || false}
                     onCheckedChange={(checked) => setEditingFlag(prev => prev ? {
                       ...prev,
                       environments: { ...prev.environments, development: checked }
                     } : null)}
-                  />
+                  /> */}
                 </div>
                 <div className="flex items-center justify-between rounded-md border p-3">
                   <Label htmlFor="staging-env" className="flex items-center gap-2 cursor-pointer">
                     <Badge variant="outline" className="bg-warning/10 text-warning border-warning/20">Stage</Badge>
                     Staging
                   </Label>
-                  <Switch
+                  {/* <Switch
                     id="staging-env"
                     checked={editingFlag?.environments?.staging || false}
                     onCheckedChange={(checked) => setEditingFlag(prev => prev ? {
                       ...prev,
                       environments: { ...prev.environments, staging: checked }
                     } : null)}
-                  />
+                  /> */}
                 </div>
                 <div className="flex items-center justify-between rounded-md border p-3">
                   <Label htmlFor="prod-env" className="flex items-center gap-2 cursor-pointer">
                     <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/20">Prod</Badge>
                     Production
                   </Label>
-                  <Switch
+                  {/* <Switch
                     id="prod-env"
                     checked={editingFlag?.environments?.production || false}
                     onCheckedChange={(checked) => setEditingFlag(prev => prev ? {
                       ...prev,
                       environments: { ...prev.environments, production: checked }
                     } : null)}
-                  />
+                  /> */}
                 </div>
               </div>
             </div>

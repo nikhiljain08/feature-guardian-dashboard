@@ -62,33 +62,27 @@ const mockFlags: FeatureFlag[] = [
     name: "new-checkout-flow",
     description: "Enable the new streamlined checkout experience",
     enabled: true,
-    environments: {
-      development: true,
-      staging: true,
-      production: false,
-    },
+    type:"OTP",
+    value: true,
+    valueType: "BOOLEAN",
   },
   {
     id: "flag-2",
     name: "dark-mode",
     description: "Enable dark mode theme across the application",
     enabled: true,
-    environments: {
-      development: true,
-      staging: true,
-      production: true,
-    },
+    type:"OTP",
+    value: true,
+    valueType: "BOOLEAN",
   },
   {
     id: "flag-3",
     name: "analytics-v2",
     description: "Use the new analytics tracking system",
     enabled: false,
-    environments: {
-      development: true,
-      staging: false,
-      production: false,
-    },
+    type:"OTP",
+    value: true,
+    valueType: "BOOLEAN",
   },
 ];
 

@@ -9,7 +9,7 @@ export interface Microservice {
   lastChecked: string;
 }
 
-export type FlagType = "release" | "experiment" | "ops" | "permission";
+export type ValueType = "STRING" | "INTEGER" | "BOOLEAN" | "LONG" | "FLOAT" | "DOUBLE" | "DATE" | "JSON";
 export type Country = 
   | "AE" // United Arab Emirates
   | "QA" // Qatar
@@ -30,8 +30,9 @@ export interface FeatureFlag {
   name: string;
   description: string;
   enabled: boolean;
-  environments: Record<Environment, boolean>;
-  type?: FlagType;
+  type: string;
+  value: any;
+  valueType: ValueType;
   countries?: Country[];
 }
 
