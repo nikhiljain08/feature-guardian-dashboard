@@ -61,9 +61,9 @@ const LoginForm = () => {
 
   return (
     <>
-      <Card className="w-full max-w-md shadow-lg">
+      <Card className="w-full max-w-md shadow-lg border-accent/10">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Feature Guardian</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Feature Guardian</CardTitle>
           <CardDescription className="text-center">
             Login to manage your feature flags and monitor services
           </CardDescription>
@@ -79,6 +79,7 @@ const LoginForm = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                className="transition-all duration-200 focus:ring-2 focus:ring-primary/40"
               />
             </div>
             <div className="space-y-2">
@@ -89,12 +90,13 @@ const LoginForm = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                className="transition-all duration-200 focus:ring-2 focus:ring-primary/40"
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="environment">Environment</Label>
               <Select value={environment} onValueChange={(value) => setEnvironment(value as Environment)}>
-                <SelectTrigger>
+                <SelectTrigger className="transition-all duration-200 focus:ring-2 focus:ring-primary/40">
                   <SelectValue placeholder="Select environment" />
                 </SelectTrigger>
                 <SelectContent>
@@ -106,7 +108,11 @@ const LoginForm = () => {
                 </SelectContent>
               </Select>
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button 
+              type="submit" 
+              className="w-full transition-all duration-200 hover:shadow-lg hover:shadow-primary/20" 
+              disabled={isLoading}
+            >
               {isLoading ? "Logging in..." : "Login"}
             </Button>
           </form>
