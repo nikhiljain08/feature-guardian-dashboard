@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Flag, Plus, Search, Filter } from "lucide-react";
@@ -17,7 +16,22 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { Environment, FeatureFlag, FlagType, Country } from "@/types";
 
-// Mock data for feature flags
+const countryNames: Record<Country, string> = {
+  AE: "United Arab Emirates",
+  QA: "Qatar",
+  SA: "Saudi Arabia",
+  PK: "Pakistan",
+  KW: "Kuwait",
+  EG: "Egypt",
+  JO: "Jordan",
+  OM: "Oman",
+  BH: "Bahrain",
+  LB: "Lebanon",
+  KE: "Kenya",
+  GE: "Georgia",
+  UZ: "Uzbekistan"
+};
+
 const mockFlags: FeatureFlag[] = [
   {
     id: "flag-1",
@@ -30,7 +44,7 @@ const mockFlags: FeatureFlag[] = [
       production: false,
     },
     type: "release",
-    countries: ["global"]
+    countries: ["AE", "SA"]
   },
   {
     id: "flag-2",
@@ -43,7 +57,7 @@ const mockFlags: FeatureFlag[] = [
       production: true,
     },
     type: "experiment",
-    countries: ["us", "eu"]
+    countries: ["QA", "KW"]
   },
   {
     id: "flag-3",
@@ -56,7 +70,7 @@ const mockFlags: FeatureFlag[] = [
       production: false,
     },
     type: "ops",
-    countries: ["us"]
+    countries: ["PK"]
   },
   {
     id: "flag-4",
@@ -69,7 +83,7 @@ const mockFlags: FeatureFlag[] = [
       production: true,
     },
     type: "permission",
-    countries: ["global"]
+    countries: ["AE", "SA", "QA"]
   },
   {
     id: "flag-5",
@@ -82,7 +96,7 @@ const mockFlags: FeatureFlag[] = [
       production: false,
     },
     type: "release",
-    countries: ["us", "eu", "asia"]
+    countries: ["EG", "JO", "OM"]
   },
   {
     id: "flag-6",
@@ -95,7 +109,7 @@ const mockFlags: FeatureFlag[] = [
       production: false,
     },
     type: "experiment",
-    countries: ["us"]
+    countries: ["BH", "LB", "KE"]
   },
 ];
 
@@ -115,6 +129,10 @@ const FeatureFlagsPage = () => {
   const [editingFlag, setEditingFlag] = useState<FeatureFlag | null>(null);
   const [countryFilter, setCountryFilter] = useState<Country | "all">("all");
   const [typeFilter, setTypeFilter] = useState<FlagType | "all">("all");
+
+  const availableCountries: Country[] = [
+    "AE", "QA", "SA", "PK", "KW", "EG", "JO", "OM", "BH", "LB", "KE", "GE", "UZ"
+  ];
 
   const handleEnvironmentChange = (env: Environment) => {
     setEnvironment(env);
@@ -143,14 +161,12 @@ const FeatureFlagsPage = () => {
     }
     
     if (editingFlag.id) {
-      // Update existing flag
       const updatedFlags = featureFlags.map(flag => 
         flag.id === editingFlag.id ? editingFlag : flag
       );
       setFeatureFlags(updatedFlags);
       toast.success(`Feature flag "${editingFlag.name}" updated`);
     } else {
-      // Add new flag
       const newFlag = {
         ...editingFlag,
         id: `flag-${Date.now()}`,
@@ -242,16 +258,14 @@ const FeatureFlagsPage = () => {
                   value={countryFilter} 
                   onValueChange={(value) => setCountryFilter(value as Country | 'all')}
                 >
-                  <SelectTrigger className="w-[130px]">
+                  <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Country" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Countries</SelectItem>
-                    <SelectItem value="global">Global</SelectItem>
-                    <SelectItem value="us">United States</SelectItem>
-                    <SelectItem value="eu">Europe</SelectItem>
-                    <SelectItem value="asia">Asia</SelectItem>
-                    <SelectItem value="latam">Latin America</SelectItem>
+                    {availableCountries.map((country) => (
+                      <SelectItem key={country} value={country}>{countryNames[country]}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <Select 
@@ -323,10 +337,7 @@ const FeatureFlagsPage = () => {
                             <div className="flex flex-wrap gap-1">
                               {flag.countries?.map(country => (
                                 <Badge key={country} variant="outline">
-                                  {country === "global" ? "Global" : 
-                                   country === "us" ? "US" : 
-                                   country === "eu" ? "EU" : 
-                                   country === "asia" ? "Asia" : "LatAm"}
+                                  {country}
                                 </Badge>
                               ))}
                             </div>
@@ -419,45 +430,31 @@ const FeatureFlagsPage = () => {
             <div className="space-y-2">
               <Label>Countries</Label>
               <div className="flex flex-wrap gap-2">
-                {["global", "us", "eu", "asia", "latam"].map((country) => (
+                {availableCountries.map((country) => (
                   <Badge 
                     key={country}
-                    variant={editingFlag?.countries?.includes(country as Country) ? "default" : "outline"}
+                    variant={editingFlag?.countries?.includes(country) ? "default" : "outline"}
                     className="cursor-pointer"
                     onClick={() => {
                       setEditingFlag(prev => {
                         if (!prev) return null;
                         
-                        // If it's global, make it the only selection
-                        if (country === "global") {
-                          return {...prev, countries: ["global"]};
-                        }
-                        
-                        // Create a new array to avoid mutation
                         let newCountries = [...(prev.countries || [])];
                         
-                        // If it's already selected, remove it
-                        if (newCountries.includes(country as Country)) {
+                        if (newCountries.includes(country)) {
                           newCountries = newCountries.filter(c => c !== country);
-                          // If now empty, default to global
                           if (newCountries.length === 0) {
-                            newCountries = ["global"];
+                            newCountries = ["AE"];
                           }
                         } else {
-                          // If global is selected, remove it
-                          newCountries = newCountries.filter(c => c !== "global");
-                          // Add the new country
-                          newCountries.push(country as Country);
+                          newCountries.push(country);
                         }
                         
                         return {...prev, countries: newCountries};
                       });
                     }}
                   >
-                    {country === "global" ? "Global" : 
-                     country === "us" ? "United States" : 
-                     country === "eu" ? "Europe" : 
-                     country === "asia" ? "Asia" : "Latin America"}
+                    {country}
                   </Badge>
                 ))}
               </div>

@@ -10,7 +10,20 @@ export interface Microservice {
 }
 
 export type FlagType = "release" | "experiment" | "ops" | "permission";
-export type Country = "global" | "us" | "eu" | "asia" | "latam";
+export type Country = 
+  | "AE" 
+  | "QA" 
+  | "SA" 
+  | "PK" 
+  | "KW" 
+  | "EG" 
+  | "JO" 
+  | "OM" 
+  | "BH" 
+  | "LB" 
+  | "KE" 
+  | "GE" 
+  | "UZ";
 
 export interface FeatureFlag {
   id: string;
