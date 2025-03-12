@@ -1,5 +1,5 @@
 
-import { Bell, User, Settings } from "lucide-react";
+import { Bell, User, Settings, Server, Flag, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -28,6 +28,36 @@ const DashboardHeader = ({ environment, onEnvironmentChange }: DashboardHeaderPr
             environment={environment}
             onEnvironmentChange={onEnvironmentChange}
           />
+        </div>
+
+        <div className="hidden md:flex items-center space-x-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex items-center gap-2"
+            onClick={() => navigate('/dashboard')}
+          >
+            <Home className="h-4 w-4" />
+            Dashboard
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex items-center gap-2"
+            onClick={() => navigate('/microservices')}
+          >
+            <Server className="h-4 w-4" />
+            Microservices
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex items-center gap-2"
+            onClick={() => navigate('/feature-flags')}
+          >
+            <Flag className="h-4 w-4" />
+            Feature Flags
+          </Button>
         </div>
 
         <div className="flex items-center gap-4">

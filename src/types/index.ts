@@ -11,19 +11,19 @@ export interface Microservice {
 
 export type FlagType = "release" | "experiment" | "ops" | "permission";
 export type Country = 
-  | "AE" 
-  | "QA" 
-  | "SA" 
-  | "PK" 
-  | "KW" 
-  | "EG" 
-  | "JO" 
-  | "OM" 
-  | "BH" 
-  | "LB" 
-  | "KE" 
-  | "GE" 
-  | "UZ";
+  | "AE" // United Arab Emirates
+  | "QA" // Qatar
+  | "SA" // Saudi Arabia
+  | "PK" // Pakistan
+  | "KW" // Kuwait
+  | "EG" // Egypt
+  | "JO" // Jordan
+  | "OM" // Oman
+  | "BH" // Bahrain
+  | "LB" // Lebanon
+  | "KE" // Kenya
+  | "GE" // Georgia
+  | "UZ"; // Uzbekistan
 
 export interface FeatureFlag {
   id: string;
