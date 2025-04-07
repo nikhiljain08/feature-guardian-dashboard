@@ -28,7 +28,7 @@ export type Country =
 export interface FeatureFlag {
   id: string;
   name: string;
-  description: string;
+  description?: string;
   enabled: boolean;
   type: string;
   value: any;

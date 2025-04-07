@@ -174,7 +174,7 @@ const MicroservicesHealth = () => {
 
   // Check if user is logged in
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+    const isLoggedIn = localStorage.getItem("token") != "";
     if (!isLoggedIn) {
       navigate("/login");
     }

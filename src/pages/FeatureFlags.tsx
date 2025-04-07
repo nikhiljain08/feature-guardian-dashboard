@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Flag, Plus, Search, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,9 +12,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import axios from "axios";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { Environment, FeatureFlag, ValueType, Country } from "@/types";
+import { getFeatureFlagUrl } from "@/config/api";
 
 const countryNames: Record<Country, string> = {
   AE: "United Arab Emirates",
@@ -32,94 +34,137 @@ const countryNames: Record<Country, string> = {
   UZ: "Uzbekistan"
 };
 
-const mockFlags: FeatureFlag[] = [
-  {
-    id: "flag-1",
-    name: "new-checkout-flow",
-    description: "Enable the new streamlined checkout experience",
-    enabled: true,
-    type:"OTP",
-    value: true,
-    valueType: "BOOLEAN",
-    countries: ["AE", "SA"]
-  },
-  {
-    id: "flag-2",
-    name: "dark-mode",
-    description: "Enable dark mode theme across the application",
-    enabled: true,
-    type:"OTP",
-    value: true,
-    valueType: "BOOLEAN",
-    countries: ["QA", "KW"]
-  },
-  {
-    id: "flag-3",
-    name: "analytics-v2",
-    description: "Use the new analytics tracking system",
-    enabled: false,
-    type:"OTP",
-    value: true,
-    valueType: "BOOLEAN",
-    countries: ["PK"]
-  },
-  {
-    id: "flag-4",
-    name: "admin-dashboard",
-    description: "Access to administrative controls",
-    enabled: true,
-    type:"OTP",
-    value: true,
-    valueType: "BOOLEAN",
-    countries: ["AE", "SA", "QA"]
-  },
-  {
-    id: "flag-5",
-    name: "new-pricing-model",
-    description: "Enables the new subscription pricing model",
-    enabled: false,
-    type:"OTP",
-    value: true,
-    valueType: "BOOLEAN",
-    countries: ["EG", "JO", "OM"]
-  },
-  {
-    id: "flag-6",
-    name: "beta-features",
-    description: "Enables access to beta features for select users",
-    enabled: true,
-    type:"OTP",
-    value: true,
-    valueType: "BOOLEAN",
-    countries: ["BH", "LB", "KE"]
-  },
-];
-
 const typeColors: Record<ValueType, string> = {
-  STRING: "bg-blue-100 text-blue-800 border-blue-200",
-  BOOLEAN: "bg-purple-100 text-purple-800 border-purple-200",
-  JSON: "bg-amber-100 text-amber-800 border-amber-200",
-  INTEGER: "bg-green-100 text-green-800 border-green-200",
-  LONG: "bg-blue-100 text-blue-800 border-blue-200",
-  FLOAT: "bg-purple-100 text-purple-800 border-purple-200",
-  DOUBLE: "bg-amber-100 text-amber-800 border-amber-200",
-  DATE: "bg-green-100 text-green-800 border-green-200"
+  ROUTE: "bg-blue-100 text-blue-800 border-blue-200",
+  KAFKA_MESSAGING: "bg-purple-100 text-purple-800 border-purple-200",
+  DRIVER_ROUTE: "bg-green-100 text-green-800 border-green-200",
+  ASSIGNEE: "bg-amber-100 text-amber-800 border-amber-200",
+  DRIVER_TRIP: "bg-indigo-100 text-indigo-800 border-indigo-200",
+  COMMS_NOTIFY: "bg-pink-100 text-pink-800 border-pink-200",
+  ASSIGNEE_TIP: "bg-teal-100 text-teal-800 border-teal-200",
+  OTP: "bg-cyan-100 text-cyan-800 border-cyan-200",
+  OMS_COD: "bg-orange-100 text-orange-800 border-orange-200",
+  OLD_REPORTING: "bg-gray-100 text-gray-800 border-gray-200",
+  ANALYTICS: "bg-red-100 text-red-800 border-red-200",
+  GEOFENCE: "bg-lime-100 text-lime-800 border-lime-200",
+  ALERTS: "bg-yellow-100 text-yellow-800 border-yellow-200",
+  BUFFER_TIME: "bg-violet-100 text-violet-800 border-violet-200",
+  THRESHOLD_TIME: "bg-rose-100 text-rose-800 border-rose-200",
+  // Fallback for any new categories not explicitly defined
+  DEFAULT: "bg-gray-100 text-gray-800 border-gray-200"
 };
 
 const FeatureFlagsPage = () => {
   const navigate = useNavigate();
   const [environment, setEnvironment] = useState<Environment>("development");
-  const [featureFlags, setFeatureFlags] = useState<FeatureFlag[]>(mockFlags);
+  const [featureFlags, setFeatureFlags] = useState<FeatureFlag[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingFlag, setEditingFlag] = useState<FeatureFlag | null>(null);
   const [countryFilter, setCountryFilter] = useState<Country | "all">("all");
-  const [typeFilter, setTypeFilter] = useState<ValueType | "STRING">("STRING");
+  const [typeFilter, setTypeFilter] = useState<"string" | "all">("all");
+  const [isLoading, setIsLoading] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
 
   const availableCountries: Country[] = [
     "AE", "QA", "SA", "PK", "KW", "EG", "JO", "OM", "BH", "LB", "KE", "GE", "UZ"
   ];
 
+  const transformConfigToFeatures = (config: Record<string, Record<string, Array<{
+    key: string;
+    value: any;
+    valueType: ValueType;
+    active: boolean;
+  }>>>): FeatureFlag[] => {
+    const features: FeatureFlag[] = [];
+
+    for (const region in config) {
+      const regionConfig = config[region];
+
+      for (const featureSet in regionConfig) {
+        const featureItems = regionConfig[featureSet];
+
+        featureItems.forEach((item) => {
+          features.push({
+            id: `${region}-${featureSet}-${item.key}`,
+            name: item.key,
+            description: "", // Adding empty description since it's required but not in source data
+            enabled: item.active,
+            type: featureSet,
+            value: item.value,
+            valueType: item.valueType,
+            countries: [region as Country]
+          });
+        });
+      }
+    }
+
+    return features;
+  };
+
+  // Check if user is logged in
+  useEffect(() => {
+    const storedToken = localStorage.getItem("token") != "";
+    if (!storedToken) {
+      navigate("/login");
+      return
+    } else {
+      setToken(localStorage.getItem("token"));
+    }
+  }, [navigate]);
+
+  // Fetch flags when token and environment change
+  useEffect(() => {
+    if (token) {
+      fetchFeatureFlags();
+    }
+  }, [token, environment]);
+
+  // Extract unique categories from featureFlags
+  const availableCategories = useMemo(() => {
+    const categories = new Set<string>();
+    featureFlags.forEach(flag => {
+      if (flag.type) {
+        categories.add(flag.type);
+      }
+    });
+    return Array.from(categories).sort(); // Sort alphabetically for consistent display
+  }, [featureFlags]);
+
+  const fetchFeatureFlags = async () => {
+    setIsLoading(true)
+    try {
+      const getFeaturesUrl = getFeatureFlagUrl('list', environment);
+      
+      const config = {
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'System-id': 'CWINGS'
+        },
+      };
+      
+      const response = await axios.get(getFeaturesUrl, config);
+      const transformedFeatures = transformConfigToFeatures(response.data)
+      setFeatureFlags(transformedFeatures)
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 401) {
+          localStorage.removeItem("token");
+          setToken(null);
+          navigate('/login');
+        } else {
+          console.error('API Error:', error.response?.data);
+          toast.error("Failed to fetch feature flags: " + (error.message || "Unknown error"));
+        }
+      } else {
+        console.error('Unexpected Error:', error);
+        toast.error("An unexpected error occurred while fetching feature flags");
+      }
+    } finally {
+      setIsLoading(false)
+    }
+  }
+  
   const handleEnvironmentChange = (env: Environment) => {
     setEnvironment(env);
   };
@@ -132,7 +177,7 @@ const FeatureFlagsPage = () => {
       const matchesCountry = countryFilter === "all" || 
                             (flag.countries && flag.countries.includes(countryFilter as Country));
       
-      const matchesType = typeFilter === "STRING" || flag.type === typeFilter;
+      const matchesType = typeFilter === "all" || flag.type === typeFilter;
       
       return matchesSearch && matchesCountry && matchesType;
     });
@@ -249,17 +294,16 @@ const FeatureFlagsPage = () => {
                 </Select>
                 <Select 
                   value={typeFilter} 
-                  onValueChange={(value) => setTypeFilter(value as ValueType | 'STRING')}
+                  onValueChange={(value) => setTypeFilter(value as 'string' | 'all')}
                 >
-                  <SelectTrigger className="w-[130px]">
+                  <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="release">Release</SelectItem>
-                    <SelectItem value="experiment">Experiment</SelectItem>
-                    <SelectItem value="ops">Operations</SelectItem>
-                    <SelectItem value="permission">Permission</SelectItem>
+                    <SelectItem value="all">All Feature Type</SelectItem>
+                    {availableCategories.map((category) => (
+                      <SelectItem key={category} value={category}>{category}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -272,11 +316,11 @@ const FeatureFlagsPage = () => {
                   <Flag className="h-10 w-10 text-muted-foreground/60 mb-3" />
                   <h3 className="text-lg font-medium">No feature flags found</h3>
                   <p className="text-sm text-muted-foreground mt-1 mb-4">
-                    {searchQuery || countryFilter !== "all" || typeFilter !== "STRING" 
+                    {searchQuery || countryFilter !== "all" || typeFilter !== "all" 
                       ? "No flags match your current filters"
                       : "Create your first feature flag to get started"}
                   </p>
-                  {!searchQuery && countryFilter === "all" && typeFilter === "STRING" && (
+                  {!searchQuery && countryFilter === "all" && typeFilter === "all" && (
                     <Button onClick={openAddDialog} size="sm">
                       Create a Feature Flag
                     </Button>

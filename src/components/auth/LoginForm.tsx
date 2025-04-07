@@ -7,8 +7,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import axios from "axios";
 import { Environment } from "@/types";
 import OtpModal from "./OtpModal";
+
+import {
+  WorkType,
+  getAuthUrl,
+  validateOtpUrl,
+} from "@/config/api";
 
 const environments: { value: Environment; label: string }[] = [
   { value: "development", label: "Development" },
@@ -18,7 +25,7 @@ const environments: { value: Environment; label: string }[] = [
 
 const LoginForm = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [environment, setEnvironment] = useState<Environment>("development");
   const [isLoading, setIsLoading] = useState(false);
@@ -29,12 +36,18 @@ const LoginForm = () => {
     setIsLoading(true);
 
     try {
-      // Simulating API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      
-      // In a real app, you would make an actual API call here
-      // For demo, we'll always show OTP modal
-      setShowOtpModal(true);
+      const loginUrl = getAuthUrl(environment);
+
+      const response = await axios.post(loginUrl, { username, password }, {headers: { 'Content-Type': 'application/json', 'System-id': 'CWINGS' }});
+      if (response.data?.otpRequired) {
+        toast.info("OTP sent to your email");
+        setShowOtpModal(true);
+      } else {
+        localStorage.setItem("token", response.data.jwt);
+        localStorage.setItem("env", environment);
+        toast.success("Login successful!");
+        navigate("/dashboard");
+      }
     } catch (error) {
       toast.error("Failed to login. Please try again.");
     } finally {
@@ -46,9 +59,11 @@ const LoginForm = () => {
     setIsLoading(true);
     
     try {
-      // Simulating OTP verification
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
+      const verifyUrl = validateOtpUrl(environment);
+      const response = await axios.post(verifyUrl, { username, otp });
+
+      localStorage.setItem("token", response.data.jwt);
+      localStorage.setItem("env", environment);
       toast.success("Login successful!");
       setShowOtpModal(false);
       navigate("/dashboard");
@@ -76,8 +91,8 @@ const LoginForm = () => {
                 id="email"
                 type="email"
                 placeholder="name@company.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 required
                 className="transition-all duration-200 focus:ring-2 focus:ring-primary/40"
               />

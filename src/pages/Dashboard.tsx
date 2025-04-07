@@ -94,7 +94,7 @@ const Dashboard = () => {
 
   // Check if user is logged in (in a real app, you would check for a valid token)
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+    const isLoggedIn = localStorage.getItem("token") != "";
     if (!isLoggedIn) {
       navigate("/login");
     }

@@ -8,7 +8,7 @@ const Login = () => {
   
   // Check if user is already logged in
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+    const isLoggedIn = localStorage.getItem("token") != "";
     if (isLoggedIn) {
       navigate("/dashboard");
     }
