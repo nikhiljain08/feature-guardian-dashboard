@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Flag, Server } from "lucide-react";
 import { Environment, FeatureFlag, Microservice } from "@/types";
+import { TokenManager } from "@/utils/auth";
 
 // Mock data for services
 const mockServices: Microservice[] = [
@@ -88,28 +89,27 @@ const mockFlags: FeatureFlag[] = [
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [environment, setEnvironment] = useState<Environment>("development");
   const [services, setServices] = useState<Microservice[]>(mockServices);
   const [featureFlags, setFeatureFlags] = useState<FeatureFlag[]>(mockFlags);
+  
+  // Get environment from TokenManager
+  const environment = (TokenManager.getEnvironment() as Environment) || "development";
 
-  // Check if user is logged in (in a real app, you would check for a valid token)
+  // Check if user is logged in
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem("token") != "";
-    if (!isLoggedIn) {
+    if (!TokenManager.isAuthenticated()) {
       navigate("/login");
     }
   }, [navigate]);
 
-  const handleEnvironmentChange = (env: Environment) => {
-    setEnvironment(env);
-    
-    // Simulate different service statuses based on environment
-    if (env === "production") {
+  // Simulate different service statuses based on environment
+  useEffect(() => {
+    if (environment === "production") {
       setServices(mockServices.map(service => ({
         ...service,
         status: Math.random() > 0.9 ? "degraded" : "healthy",
       })));
-    } else if (env === "staging") {
+    } else if (environment === "staging") {
       setServices(mockServices.map(service => ({
         ...service,
         status: Math.random() > 0.8 ? "degraded" : Math.random() > 0.95 ? "down" : "healthy",
@@ -120,7 +120,7 @@ const Dashboard = () => {
         status: Math.random() > 0.7 ? "degraded" : Math.random() > 0.9 ? "down" : "healthy",
       })));
     }
-  };
+  }, [environment]);
 
   const handleUpdateFlag = (updatedFlag: FeatureFlag) => {
     const existingIndex = featureFlags.findIndex(flag => flag.id === updatedFlag.id);
@@ -138,7 +138,6 @@ const Dashboard = () => {
     <div className="flex flex-col min-h-screen">
       <DashboardHeader
         environment={environment}
-        onEnvironmentChange={handleEnvironmentChange}
       />
       <main className="flex-1 container py-6 space-y-8">
         <div className="flex flex-col space-y-4">
@@ -154,27 +153,6 @@ const Dashboard = () => {
             </Button>
           </div>
           <ServiceHealthPanel services={services} />
-        </div>
-        
-        <Separator />
-        
-        <div className="flex flex-col space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold tracking-tight">Featured Flags</h2>
-            <Button 
-              variant="outline" 
-              className="flex items-center gap-2"
-              onClick={() => navigate("/feature-flags")}
-            >
-              <Flag className="h-4 w-4" />
-              View All Flags
-            </Button>
-          </div>
-          <FeatureFlags
-            flags={featureFlags.slice(0, 3)} // Show only the first 3 flags on dashboard
-            environment={environment}
-            onUpdateFlag={handleUpdateFlag}
-          />
         </div>
       </main>
     </div>

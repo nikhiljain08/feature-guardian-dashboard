@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import FeatureFlags from "./pages/FeatureFlags";
 import MicroservicesHealth from "./pages/MicroservicesHealth";
 import NotFound from "./pages/NotFound";
+import ReleaseManagement from "./pages/ReleaseManagement";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/feature-flags" element={<FeatureFlags />} />
           <Route path="/microservices" element={<MicroservicesHealth />} />
+          <Route path="/release-management" element={<ReleaseManagement />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

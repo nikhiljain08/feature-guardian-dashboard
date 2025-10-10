@@ -1,22 +1,23 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Flag, Plus, Search, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Separator } from "@/components/ui/separator";
+import { Plus, Edit, Trash2, Search, Flag } from "lucide-react";
+import { Environment, FeatureFlag, Country, ValueType } from "@/types";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { toast } from "sonner";
 import axios from "axios";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import DashboardHeader from "@/components/dashboard/DashboardHeader";
-import { Environment, FeatureFlag, ValueType, Country } from "@/types";
 import { getFeatureFlagUrl } from "@/config/api";
+import { TokenManager } from "@/utils/auth";
 
 const countryNames: Record<Country, string> = {
   AE: "United Arab Emirates",
@@ -34,7 +35,7 @@ const countryNames: Record<Country, string> = {
   UZ: "Uzbekistan"
 };
 
-const typeColors: Record<ValueType, string> = {
+const typeColors: Record<string, string> = {
   ROUTE: "bg-blue-100 text-blue-800 border-blue-200",
   KAFKA_MESSAGING: "bg-purple-100 text-purple-800 border-purple-200",
   DRIVER_ROUTE: "bg-green-100 text-green-800 border-green-200",
@@ -56,7 +57,7 @@ const typeColors: Record<ValueType, string> = {
 
 const FeatureFlagsPage = () => {
   const navigate = useNavigate();
-  const [environment, setEnvironment] = useState<Environment>("development");
+  const environment = (TokenManager.getEnvironment() as Environment) || "development";
   const [featureFlags, setFeatureFlags] = useState<FeatureFlag[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -104,12 +105,11 @@ const FeatureFlagsPage = () => {
 
   // Check if user is logged in
   useEffect(() => {
-    const storedToken = localStorage.getItem("token") != "";
-    if (!storedToken) {
+    if (!TokenManager.isAuthenticated()) {
       navigate("/login");
-      return
+      return;
     } else {
-      setToken(localStorage.getItem("token"));
+      setToken(TokenManager.getToken());
     }
   }, [navigate]);
 
@@ -164,10 +164,6 @@ const FeatureFlagsPage = () => {
       setIsLoading(false)
     }
   }
-  
-  const handleEnvironmentChange = (env: Environment) => {
-    setEnvironment(env);
-  };
 
   const filteredFlags = useMemo(() => {
     return featureFlags.filter(flag => {
@@ -248,7 +244,6 @@ const FeatureFlagsPage = () => {
     <div className="flex flex-col min-h-screen">
       <DashboardHeader
         environment={environment}
-        onEnvironmentChange={handleEnvironmentChange}
       />
       <main className="flex-1 container py-6 space-y-6">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">

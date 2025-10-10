@@ -6,6 +6,10 @@ interface ApiConfig {
       domain: string;
       login: string;
       verify: string;
+      headers: {
+        'system-id': string;
+        'Content-Type': string;
+      };
     };
     featureFlags: {
       domain: string;
@@ -25,6 +29,10 @@ export const API_CONFIG: ApiConfig = {
       domain: 'https://camsusermgmt-api-develop.mafrservicesstg.com/lastmile',
       login: '/v2/authenticate',
       verify: '/v2/authenticate/verify-otp',
+      headers: {
+        'system-id': 'CWINGS',
+        'Content-Type': 'application/json',
+      },
     },
     featureFlags: {
       domain: 'https://cwings-develop.mafrservicesstg.com/report/fulfilment',
@@ -41,6 +49,10 @@ export const API_CONFIG: ApiConfig = {
       domain: 'https://camsusermgmt-api-test.mafrservicesstg.com/lastmile',
       login: '/v2/authenticate',
       verify: '/v2/authenticate/verify-otp',
+      headers: {
+        'system-id': 'CWINGS',
+        'Content-Type': 'application/json',
+      },
     },
     featureFlags: {
       domain: 'https://cwings-test.mafrservicesstg.com/report/fulfilment',
@@ -57,6 +69,10 @@ export const API_CONFIG: ApiConfig = {
       domain: 'https://camsusermgmt-api.mafrservices.com/lastmile',
       login: '/v2/authenticate',
       verify: '/v2/authenticate/verify-otp',
+      headers: {
+        'system-id': 'CWINGS',
+        'Content-Type': 'application/json',
+      },
     },
     featureFlags: {
       domain: 'https://cwings.mafrservices.com/report/fulfilment',
@@ -78,6 +94,11 @@ export const getAuthUrl = (workType: WorkType = 'development') => {
 export const validateOtpUrl = (workType: WorkType = 'development') => {
   const config = API_CONFIG[workType];
   return `${config.auth.domain}${config.auth.verify}`;
+};
+
+export const getAuthHeaders = (workType: WorkType = 'development') => {
+  const config = API_CONFIG[workType];
+  return config.auth.headers;
 };
 
 export const getFeatureFlagUrl = (endpoint: keyof ApiConfig['development']['featureFlags']['endpoints'], workType: WorkType = 'development') => {

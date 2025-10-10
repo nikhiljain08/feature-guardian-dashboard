@@ -2,14 +2,14 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import LoginForm from "@/components/auth/LoginForm";
+import { TokenManager } from "@/utils/auth";
 
 const Login = () => {
   const navigate = useNavigate();
   
   // Check if user is already logged in
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem("token") != "";
-    if (isLoggedIn) {
+    if (TokenManager.isAuthenticated()) {
       navigate("/dashboard");
     }
   }, [navigate]);

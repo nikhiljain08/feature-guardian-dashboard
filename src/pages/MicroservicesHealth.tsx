@@ -1,29 +1,23 @@
-
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { 
-  Check, 
-  AlertTriangle, 
-  AlertCircle, 
-  Server, 
-  BarChart4, 
-  Clock, 
-  Activity, 
-  RefreshCw
-} from "lucide-react";
+import { Search, AlertTriangle, CheckCircle, XCircle, Clock, Activity, Check, AlertCircle, RefreshCw, Server, BarChart4 } from "lucide-react";
 import { Environment, Microservice } from "@/types";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import { TokenManager } from "@/utils/auth";
 
-// Expanded mock data with more details
 const mockServicesDetails: (Microservice & { 
   metrics?: { 
     responseTime: string; 
     requestsPerMinute: number; 
     errorRate: string;
+    uptime?: string;
   };
   deployedVersion?: string;
   lastDeployed?: string;
@@ -168,28 +162,54 @@ const ServiceStatusBadge = ({ status }: { status: Microservice['status'] }) => {
 
 const MicroservicesHealth = () => {
   const navigate = useNavigate();
-  const [environment, setEnvironment] = useState<Environment>("production");
+  const environment = (TokenManager.getEnvironment() as Environment) || "production";
   const [services, setServices] = useState(mockServicesDetails);
   const [filter, setFilter] = useState<"all" | "issues">("all");
 
   // Check if user is logged in
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem("token") != "";
-    if (!isLoggedIn) {
+    if (!TokenManager.isAuthenticated()) {
       navigate("/login");
     }
   }, [navigate]);
 
-  const handleEnvironmentChange = (env: Environment) => {
-    setEnvironment(env);
-    
-    // Simulate different service statuses based on environment
-    if (env === "production") {
+  // Simulate different service statuses based on environment
+  useEffect(() => {
+    if (environment === "production") {
       setServices(mockServicesDetails.map(service => ({
         ...service,
         status: Math.random() > 0.9 ? "degraded" : "healthy",
       })));
-    } else if (env === "staging") {
+    } else if (environment === "staging") {
+      setServices(mockServicesDetails.map(service => ({
+        ...service,
+        status: Math.random() > 0.8 ? "degraded" : Math.random() > 0.95 ? "down" : "healthy",
+      })));
+    } else {
+      setServices(mockServicesDetails.map(service => ({
+        ...service,
+        status: Math.random() > 0.7 ? "degraded" : Math.random() > 0.9 ? "down" : "healthy",
+      })));
+    }
+  }, [environment]);
+
+  const filteredServices = filter === "all" 
+    ? services 
+    : services.filter(s => s.status === "degraded" || s.status === "down");
+  
+  const healthyCount = services.filter(s => s.status === "healthy").length;
+  const degradedCount = services.filter(s => s.status === "degraded").length;
+  const downCount = services.filter(s => s.status === "down").length;
+  
+  const refreshServices = () => {
+    // In a real application, this would fetch fresh data
+    // Simulate refreshing by re-running the environment effect
+    if (environment === "production") {
+      setServices(mockServicesDetails.map(service => ({
+        ...service,
+        status: Math.random() > 0.9 ? "degraded" : "healthy",
+      })));
+    } else if (environment === "staging") {
       setServices(mockServicesDetails.map(service => ({
         ...service,
         status: Math.random() > 0.8 ? "degraded" : Math.random() > 0.95 ? "down" : "healthy",
@@ -202,24 +222,10 @@ const MicroservicesHealth = () => {
     }
   };
 
-  const filteredServices = filter === "all" 
-    ? services 
-    : services.filter(s => s.status === "degraded" || s.status === "down");
-  
-  const healthyCount = services.filter(s => s.status === "healthy").length;
-  const degradedCount = services.filter(s => s.status === "degraded").length;
-  const downCount = services.filter(s => s.status === "down").length;
-  
-  const refreshServices = () => {
-    // In a real application, this would fetch fresh data
-    handleEnvironmentChange(environment);
-  };
-
   return (
     <div className="flex flex-col min-h-screen">
       <DashboardHeader
         environment={environment}
-        onEnvironmentChange={handleEnvironmentChange}
       />
       <main className="flex-1 container py-6 space-y-6">
         <div className="flex flex-col space-y-2">
