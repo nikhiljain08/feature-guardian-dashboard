@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -509,11 +509,11 @@ export default function ReleaseManagement() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="p-4 text-left">Platform</TableHead>
-                    <TableHead className="p-4 text-left">Country</TableHead>
-                    <TableHead className="p-4 text-left">Version</TableHead>
-                    <TableHead className="p-4 text-left">Updated At</TableHead>
-                    <TableHead className="p-4 text-left">Updated By</TableHead>
+                    <TableHead scope="col" className="p-4 text-left">Platform</TableHead>
+                    <TableHead scope="col" className="p-4 text-left">Country</TableHead>
+                    <TableHead scope="col" className="p-4 text-left">Version</TableHead>
+                    <TableHead scope="col" className="p-4 text-left">Updated At</TableHead>
+                    <TableHead scope="col" className="p-4 text-left">Updated By</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
